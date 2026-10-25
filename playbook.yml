@@ -1,0 +1,40 @@
+cat > playbook.yml <<'EOF'
+- hosts: control_node
+  become: true
+  tasks:
+    - name: Remove stale Jenkins repo and key files
+      file: { path: "{{ item }}", state: absent }
+      loop:
+        - /etc/apt/sources.list.d/jenkins.list
+        - /usr/share/keyrings/jenkins-keyring.gpg
+        - /usr/share/keyrings/jenkins-keyring.asc
+
+    - name: Install Java, Docker, Git
+      apt:
+        name: [fontconfig, openjdk-21-jre, docker.io, git, curl]
+        state: present
+        update_cache: true
+
+    - name: Jenkins 2026 signing key
+      get_url:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
+        dest: /usr/share/keyrings/jenkins-keyring.asc
+
+    - name: Jenkins apt repo
+      copy:
+        dest: /etc/apt/sources.list.d/jenkins.list
+        content: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/\n"
+
+    - name: Install Jenkins
+      apt: { name: jenkins, state: present, update_cache: true }
+
+    - name: Let jenkins use docker
+      user: { name: jenkins, groups: docker, append: true }
+
+    - name: Start Docker and Jenkins
+      service: { name: "{{ item }}", state: restarted, enabled: true }
+      loop: [docker, jenkins]
+EOF
+head -2 playbook.yml
+ansible-playbook -i inventory.ini playbook.yml
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
