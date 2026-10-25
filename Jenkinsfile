@@ -1,10 +1,9 @@
-cat > Jenkinsfile <<'EOF'
 pipeline {
   agent any
   environment {
-    REPO_URL = 'https://github.com/GH_USER_X/REPO_NAME_X.git'
+    REPO_URL = 'https://github.com/varunKumar993/Online-Learning-Platform-DevOps.git'
     BRANCH   = 'master'
-    IMAGE    = 'DH_USER_X/olp-app'
+    IMAGE    = 'varunkumar993/olp-app'
     TAG      = "${env.BUILD_NUMBER}"
     SERVERS  = '43.204.28.132 15.206.159.105'
   }
@@ -63,6 +62,3 @@ pipeline {
     }
   }
 }
-EOF
-sed -i "s|GH_USER_X|$GH_USER|; s|REPO_NAME_X|$REPO_NAME|; s|DH_USER_X|$DH_USER|" Jenkinsfile
-grep -n "REPO_URL\|BRANCH\|IMAGE \|SERVERS" Jenkinsfile
